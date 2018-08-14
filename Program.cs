@@ -1,10 +1,36 @@
 ﻿using CommandLine;
 using System;
+using System.Collections.Generic;
 
 namespace RedisClient
 {
     class Program
     {
+        static void EvaluateRedisBench(ArgsOption argsOption)
+        {
+            var counter = new Counter();
+            var redisBenchList = new List<RedisBench>(argsOption.ConnectionCount);
+            for (var i = 0; i < argsOption.ConnectionCount; i++)
+            {
+                redisBenchList.Add(new RedisBench(
+                    argsOption.ConnectionString,
+                    argsOption.ChannelCount,
+                    argsOption.SendSize,
+                    counter));
+            }
+            for (var i = 0; i < argsOption.ConnectionCount; i++)
+            {
+                redisBenchList[i].StartBench();
+            }
+            Console.WriteLine("Press any key to stop...");
+            Console.ReadLine();
+            for (var i = 0; i < argsOption.ConnectionCount; i++)
+            {
+                redisBenchList[i].StopBench();
+                redisBenchList[i].Dispose();
+            }
+        }
+
         static void Main(string[] args)
         {
             bool isInputValid = true;
@@ -19,12 +45,7 @@ namespace RedisClient
             {
                 return;
             }
-            RedisBench rb = new RedisBench(argsOption.ConnectionString,
-                argsOption.ChannelCount, argsOption.SendSize);
-            rb.StartBench();
-            Console.WriteLine("Press any key to stop...");
-            Console.ReadLine();
-            rb.StopBench();
+            EvaluateRedisBench(argsOption);
         }
     }
 }

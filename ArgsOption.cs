@@ -15,5 +15,8 @@ namespace RedisClient
 
         [Option("channelCount", Required = false, Default = 10000, HelpText = "Specify the channel count")]
         public int ChannelCount { get; set; }
+
+        [Option("connectionCount", Required = false, Default = 10, HelpText = "Specify the Redis connection count")]
+        public int ConnectionCount { get; set; }
     }
 }

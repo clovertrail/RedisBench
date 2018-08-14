@@ -22,11 +22,15 @@ namespace RedisClient
 
         private ISubscriber PubSub { get; }
 
-        public RedisBench(string connectString, int channelCount, int singleMsgSize)
+        public RedisBench(
+            string connectString,
+            int channelCount,
+            int singleMsgSize,
+            Counter counter)
         {
             _redis = ConnectionMultiplexer.Connect(connectString);
             PubSub = _redis.GetSubscriber();
-            Init(channelCount, singleMsgSize);
+            Init(channelCount, singleMsgSize, counter);
         }
 
         public void StartBench()
@@ -40,7 +44,7 @@ namespace RedisClient
             _start = false;
         }
 
-        private void Init(int channelCount, int singleMsgSize)
+        private void Init(int channelCount, int singleMsgSize, Counter counter)
         {
             _start = false;
             _rnd = new Random();
@@ -56,7 +60,11 @@ namespace RedisClient
 
             SubChannels();
             _timer = new Timer(Publishing, this, _interval, _interval);
-            _counter = new Counter();
+            if (counter == null)
+            {
+                counter = new Counter();
+            }
+            _counter = counter;
         }
 
         private void SubChannels()
