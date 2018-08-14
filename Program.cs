@@ -6,6 +6,17 @@ namespace RedisClient
 {
     class Program
     {
+        static int SplitNumber(int total, int clients, int index)
+        {
+            var i = total % clients;
+            var rtn = total / clients;
+            if (index < i)
+            {
+                rtn++;
+            }
+            return rtn;
+        }
+
         static void EvaluateRedisBench(ArgsOption argsOption)
         {
             var counter = new Counter();
@@ -14,7 +25,7 @@ namespace RedisClient
             {
                 redisBenchList.Add(new RedisBench(
                     argsOption.ConnectionString,
-                    argsOption.ChannelCount,
+                    SplitNumber(argsOption.ChannelCount, argsOption.ConnectionCount, i),
                     argsOption.SendSize,
                     counter));
             }
