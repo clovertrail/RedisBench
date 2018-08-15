@@ -3,6 +3,8 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
@@ -28,9 +30,32 @@ namespace RedisClient
             int singleMsgSize,
             Counter counter)
         {
-            _redis = ConnectionMultiplexer.Connect(connectString);
+            try
+            {
+                var configuration = ConfigurationOptions.Parse(connectString);
+                configuration.CertificateValidation +=
+                    delegate (object s, X509Certificate certificate,
+                        X509Chain chain, SslPolicyErrors sslPolicyErrors)
+                { return true; };
+                _redis = ConnectionMultiplexer.Connect(configuration);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e.Message}");
+                return;
+            }
             PubSub = _redis.GetSubscriber();
+            TestPubSub();
             Init(channelCount, singleMsgSize, counter);
+        }
+
+        private void TestPubSub()
+        {
+            PubSub.Subscribe("_test", (c, data) =>
+            {
+                Console.WriteLine($"Received: {data}");
+            });
+            PubSub.Publish("_test", "hello");
         }
 
         public void StartBench()
