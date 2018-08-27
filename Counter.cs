@@ -14,20 +14,9 @@ namespace RedisClient
 
         private long[] _latency;
         private long _totalReceived;
-        //private long _lastReceived;
-        //private long _recvRate;
-
         private long _totalRecvSize;
-        //private long _lastRecvSize;
-        //private long _recvSizeRate;
-
         private long _totalSent;
-        //private long _lastSent;
-        //private long _sentRate;
-
         private long _totalSentSize;
-        //private long _lastSentSize;
-        //private long _sentSizeRate;
 
         private Timer _timer;
         private long _startPrint;
@@ -82,30 +71,6 @@ namespace RedisClient
 
         private void InternalReport()
         {
-            /*
-            lock (_lock)
-            {
-                var totalReceivedBytes = Interlocked.Read(ref _totalRecvSize);
-                var lastReceivedBytes = Interlocked.Read(ref _lastRecvSize);
-                Interlocked.Exchange(ref _recvSizeRate, totalReceivedBytes - lastReceivedBytes);
-                _lastRecvSize = totalReceivedBytes;
-
-                var totalReceived = Interlocked.Read(ref _totalReceived);
-                var lastReceived = Interlocked.Read(ref _lastReceived);
-                Interlocked.Exchange(ref _recvRate, totalReceived - lastReceived);
-                _lastReceived = totalReceived;
-
-                var totalSent = Interlocked.Read(ref _totalSent);
-                var lastSent = Interlocked.Read(ref _lastSent);
-                Interlocked.Exchange(ref _sentRate, totalSent - lastSent);
-                _lastSent = totalSent;
-
-                var totalSentSize = Interlocked.Read(ref _totalSentSize);
-                var lastSentSize = Interlocked.Read(ref _lastSentSize);
-                Interlocked.Exchange(ref _sentSizeRate, totalSentSize - lastSentSize);
-                _lastSentSize = totalSentSize;
-            }
-            */
             var dic = new ConcurrentDictionary<string, long>();
             var batchMessageDic = new ConcurrentDictionary<string, long>();
             StringBuilder sb = new StringBuilder();

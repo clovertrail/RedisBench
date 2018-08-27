@@ -128,7 +128,15 @@ namespace RedisClient
 
                         // publish the message to the channel
                         var sentData = memoryStream.ToArray();
-                        _ = PubSub.PublishAsync(_channels[i], sentData);
+                        try
+                        {
+                            PubSub.PublishAsync(_channels[i], sentData);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"{e.Message}");
+                        }
+                        
                         _counter.RecordSentSize(sentData.Length);
                     }
                 }
