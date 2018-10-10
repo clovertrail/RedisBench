@@ -1,6 +1,7 @@
 ﻿using ProtoBuf;
 using StackExchange.Redis;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
@@ -21,6 +22,7 @@ namespace RedisClient
         private string _content;
         private TimeSpan _interval = TimeSpan.FromMilliseconds(1000);
         private Counter _counter;
+        private ArrayPool<byte> _arrayPool;
 
         private ISubscriber PubSub { get; }
 
@@ -30,6 +32,7 @@ namespace RedisClient
             int singleMsgSize,
             Counter counter)
         {
+            _arrayPool = ArrayPool<byte>.Shared;
             try
             {
                 var configuration = ConfigurationOptions.Parse(connectString);
@@ -121,23 +124,33 @@ namespace RedisClient
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Content = _content
                     };
-                    using (var memoryStream = new MemoryStream())
+                    var buffer = _arrayPool.Rent(8192); // TODO. hardcode a mimimum length, it should be configurable
+                    try
                     {
-                        // serialize a ChatMessage using protobuf-net
-                        Serializer.Serialize(memoryStream, data);
+                        using (var memoryStream = new MemoryStream(buffer))
+                        {
+                            // serialize a ChatMessage using protobuf-net
+                            Serializer.Serialize(memoryStream, data);
 
-                        // publish the message to the channel
-                        var sentData = memoryStream.ToArray();
-                        try
-                        {
-                            PubSub.PublishAsync(_channels[i], sentData);
+                            // publish the message to the channel
+
+                            var sentData = new byte[memoryStream.Position];
+                            Array.Copy(buffer, sentData, memoryStream.Position);
+                            try
+                            {
+                                PubSub.PublishAsync(_channels[i], sentData);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"{e.Message}");
+                            }
+
+                            _counter.RecordSentSize(sentData.Length);
                         }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"{e.Message}");
-                        }
-                        
-                        _counter.RecordSentSize(sentData.Length);
+                    }
+                    finally
+                    {
+                        _arrayPool.Return(buffer);
                     }
                 }
             }
