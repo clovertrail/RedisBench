@@ -15,11 +15,8 @@ namespace RedisClient
 
         private long[] _latency;
         private long _totalReceived;
-
         private long _totalRecvSize;
-
         private long _totalSent;
-
         private long _totalSentSize;
 
         private Timer _timer;
