@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RedisClient
 {
@@ -38,6 +39,12 @@ namespace RedisClient
             for (var i = 0; i < argsOption.ConnectionCount; i++)
             {
                 redisBenchList[i].StopBench();
+            }
+            var waitSec = 5;
+            Console.WriteLine($"Wait {waitSec} seconds for all connections stop...");
+            Task.Delay(TimeSpan.FromSeconds(waitSec)).Wait();
+            for (var i = 0; i < argsOption.ConnectionCount; i++)
+            {
                 redisBenchList[i].Dispose();
             }
         }
